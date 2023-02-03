@@ -68,7 +68,7 @@ def main(cfg):
     cfg.n_params = sum(p.numel() for p in model.parameters())
     print(f'n_params={cfg.n_params:.2e}')
     if hasattr(model, 'num_fwd_flops'):
-        print(f'nun_fwd_flops={model.num_fwd_flops:.2e}')
+        print(f'num_fwd_flops={model.num_fwd_flops:.2e}')
 
     # Dataloaders
     print('\nBuilding train loader...')
