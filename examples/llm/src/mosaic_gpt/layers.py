@@ -199,6 +199,8 @@ class GPTMLP(nn.Module):
         self.mlp_down = nn.Linear(cfg.mlp_ratio * cfg.d_model,
                                   cfg.d_model,
                                   device=device)
+        self.mlp_up._fsdp_wrap = True  # type: ignore
+        self.mlp_down._fsdp_wrap = True  # type: ignore
         self.mlp_down._is_residual = True  # type: ignore
 
     def forward(self, x):
@@ -220,6 +222,8 @@ class GPTBlock(nn.Module):
         self.mlp = GPTMLP(cfg, device=device)
         self.resid_attn_dropout = nn.Dropout(cfg.resid_pdrop)
         self.resid_mlp_dropout = nn.Dropout(cfg.resid_pdrop)
+        self._fsdp_wrap = True  # type: ignore
+        self._activation_checkpointing = True  # type: ignore
 
     def forward(
         self,

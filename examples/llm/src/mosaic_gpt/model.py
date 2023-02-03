@@ -232,14 +232,6 @@ class MosaicGPT(nn.Module):
             if module.out_proj.bias is not None:
                 torch.nn.init.zeros_(module.out_proj.bias)
 
-    # FSDP Wrap function
-    def fsdp_wrap_fn(self, module):
-        return isinstance(module, GPTBlock)
-
-    # Activation Checkpointing
-    def activation_checkpointing_fn(self, module):
-        return isinstance(module, GPTBlock)
-
 
 class ComposerMosaicGPT(ComposerModel):
 
