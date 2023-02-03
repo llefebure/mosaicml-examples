@@ -62,6 +62,7 @@ def main(cfg):
         cfg.model.init_device = 'cpu'
 
     # Build Model
+    print('*' * 30)
     print('Initializing model...')
     model = build_composer_model(cfg.model)
     cfg.n_params = sum(p.numel() for p in model.parameters())
