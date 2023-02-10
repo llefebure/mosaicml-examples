@@ -56,15 +56,15 @@ def main(cfg):
     # using 'cuda' vs. 'cuda:id' is tricky and can lead to common user errors
     # when multiple GPUs are available.
     # Also 'meta' is only valid when using FSDP
-    assert cfg.model.device in ['meta', 'cpu']
-    if fsdp_config is None and cfg.model.device == 'meta':
+    assert cfg.model.init_device in ['meta', 'cpu']
+    if fsdp_config is None and cfg.model.init_device == 'meta':
         print(
-            "Using init device `cfg.model.device='meta'` is only valid when using FSDP! "
-            "Reverting to `cfg.model.device='cpu'`.")
-        cfg.model.device = 'cpu'
+            "Using init device `cfg.model.init_device='meta'` is only valid when using FSDP! "
+            "Reverting to `cfg.model.init_device='cpu'`.")
+        cfg.model.init_device = 'cpu'
 
     # Build Model
-    # For fast initialization of MosaicGPT, use cfg.model.device='meta'
+    # For fast initialization of MosaicGPT, use cfg.model.init_device='meta'
     print('Initializing model...')
     model = build_composer_model(cfg.model)
     cfg.n_params = sum(p.numel() for p in model.parameters())
