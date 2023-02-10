@@ -58,13 +58,12 @@ def main(cfg):
     # Also 'meta' is only valid when using FSDP
     assert cfg.model.init_device in ['meta', 'cpu']
     if fsdp_config is None and cfg.model.init_device == 'meta':
-        print(
+        warnings.warn(
             "Using init device `cfg.model.init_device='meta'` is only valid when using FSDP! "
             "Reverting to `cfg.model.init_device='cpu'`.")
         cfg.model.init_device = 'cpu'
 
     # Build Model
-    # For fast initialization of MosaicGPT, use cfg.model.init_device='meta'
     print('Initializing model...')
     model = build_composer_model(cfg.model)
     cfg.n_params = sum(p.numel() for p in model.parameters())
@@ -99,8 +98,6 @@ def main(cfg):
     # Scheduler
     scheduler = build_scheduler(cfg.scheduler)
 
-    # we use (cfg.get(...) or {}) instead of cfg.get(..., {}) so that
-    # .items() works even when the value is None
     # Loggers
     loggers = [
         build_logger(name, logger_cfg)
@@ -120,6 +117,7 @@ def main(cfg):
     ]
 
     # Build the Trainer
+    print('Building trainer...')
     trainer = Trainer(
         run_name=cfg.run_name,
         seed=cfg.seed,
