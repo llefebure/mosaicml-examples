@@ -261,7 +261,7 @@ class ConcatTokensDataset(IterableDataset):
     def __iter__(self) -> Iterable[Dict[str, bytes]]:
 
         buffer = []
-        for chunk in iter_chunks(self.hf_dataset, 100):
+        for chunk in iter_chunks(self.hf_dataset, 1):
             chunk = [d['text'] for d in chunk if d is not None]
             n_chunk_samples = len(chunk)
             encoded_chunk = self.tokenizer(chunk,
