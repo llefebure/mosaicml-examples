@@ -152,8 +152,8 @@ c4constants.splits['train'] = DataSplitConstants(hf_split='train',
 c4constants.splits['train_small'] = DataSplitConstants(
     hf_split='train',
     folder_split='train_small',
-    raw_samples=100000,
-    truncated_samples=100000)
+    raw_samples=1000000,
+    truncated_samples=1000000)
 c4constants.splits['val'] = DataSplitConstants(hf_split='validation',
                                                folder_split='val',
                                                raw_samples=364608,
@@ -261,7 +261,7 @@ class ConcatTokensDataset(IterableDataset):
     def __iter__(self) -> Iterable[Dict[str, bytes]]:
 
         buffer = []
-        for chunk in iter_chunks(self.hf_dataset, 1000):
+        for chunk in iter_chunks(self.hf_dataset, 100):
             chunk = [d['text'] for d in chunk if d is not None]
             n_chunk_samples = len(chunk)
             encoded_chunk = self.tokenizer(chunk,
