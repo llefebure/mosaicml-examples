@@ -8,6 +8,7 @@ import warnings
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
 from enum import Enum
+from itertools import zip_longest
 from typing import Dict, Iterable, Optional, Union
 
 import datasets as hf_datasets
@@ -21,6 +22,11 @@ from transformers import AutoTokenizer, PreTrainedTokenizerBase
 class ConcatMode(Enum):
     NO_CONCAT = 'NO_CONCAT'
     CONCAT_TOKENS = 'CONCAT_TOKENS'
+
+
+def iter_chunks(iterable, n):
+    args = [iter(iterable)] * n
+    return zip_longest(*args, fillvalue=None)
 
 
 def parse_args() -> Namespace:
@@ -98,7 +104,7 @@ class TrainSmallConstants(DataSplitConstants):
     def __init__(self,
                  hf_split: str = 'train',
                  folder_split: str = 'train_small',
-                 raw_samples: int = 1000000,
+                 raw_samples: int = 100000,
                  truncated_samples: int = 100000):
         super().__init__(hf_split, folder_split, raw_samples, truncated_samples)
 
@@ -124,7 +130,7 @@ pileconstants.splits['train'] = DataSplitConstants(hf_split='train',
 pileconstants.splits['train_small'] = DataSplitConstants(
     hf_split='train',
     folder_split='train_small',
-    raw_samples=1000000,
+    raw_samples=100000,
     truncated_samples=100000)
 pileconstants.splits['val'] = DataSplitConstants(hf_split='validation',
                                                  folder_split='val',
@@ -146,7 +152,7 @@ c4constants.splits['train'] = DataSplitConstants(hf_split='train',
 c4constants.splits['train_small'] = DataSplitConstants(
     hf_split='train',
     folder_split='train_small',
-    raw_samples=1000000,
+    raw_samples=100000,
     truncated_samples=100000)
 c4constants.splits['val'] = DataSplitConstants(hf_split='validation',
                                                folder_split='val',
@@ -255,19 +261,23 @@ class ConcatTokensDataset(IterableDataset):
     def __iter__(self) -> Iterable[Dict[str, bytes]]:
 
         buffer = []
-        for sample in self.hf_dataset:
-            encoded = self.tokenizer(sample['text'],
-                                     truncation=False,
-                                     padding=False)
-            iids = encoded['input_ids']
-            buffer = buffer + self.bos_tokens + iids + self.eos_tokens
-            while len(buffer) >= self.max_length:
-                concat_sample = buffer[:self.max_length]
-                buffer = buffer[self.max_length:] if self.should_wrap else []
-                yield {
-                    # convert to bytes to store in MDS binary format
-                    'tokens': np.asarray(concat_sample).tobytes()
-                }
+        for chunk in iter_chunks(self.hf_dataset, 1000):
+            chunk = [d['text'] for d in chunk if d is not None]
+            n_chunk_samples = len(chunk)
+            encoded_chunk = self.tokenizer(chunk,
+                                           truncation=False,
+                                           padding=False)
+            for i in range(n_chunk_samples):
+                iids = encoded_chunk['input_ids'][i]
+                buffer = buffer + self.bos_tokens + iids + self.eos_tokens
+                while len(buffer) >= self.max_length:
+                    concat_sample = buffer[:self.max_length]
+                    buffer = buffer[self.
+                                    max_length:] if self.should_wrap else []
+                    yield {
+                        # convert to bytes to store in MDS binary format
+                        'tokens': np.asarray(concat_sample).tobytes()
+                    }
 
 
 def build_hf_dataset(dataset_name: str,
