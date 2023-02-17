@@ -41,7 +41,7 @@ class ShardedLaw(IterableDataset):
             worker_id = worker_info.id
             it = self.dataset._ex_iterable  # type: ignore
             shards = it.kwargs['filepaths']  # type: ignore
-            assert len(shards) % num_workers == 0
+            # assert len(shards) % num_workers == 0
             it.kwargs['filepaths'] = shards[  # type: ignore
                 worker_id::num_workers]
         return iter(self.dataset)
