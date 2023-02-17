@@ -1,0 +1,19 @@
+name: mosaic-gpt-1b-gpus-8
+image: mosaicml/pytorch:1.12.1_cu116-python3.9-ubuntu20.04
+gpu_num: 8
+gpu_type: a100_40gb
+
+integrations:
+  - integration_type: git_repo
+    git_repo: mosaicml/examples
+    git_branch: v0.0.2
+    pip_install: -r llm/requirements.txt
+    ssh_clone: false
+
+command: |
+  cd mosaicml-examples/llm
+  python convert_pile_of_law.py --out_root ./pile-of-law --splits train
+  composer main.py yamls/mosaic_gpt/1b.yaml \
+    train_loader.dataset.split=train \
+    progress_bar=false \
+    run_name=$COMPOSER_RUN_NAME
