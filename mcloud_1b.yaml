@@ -12,8 +12,7 @@ integrations:
 
 command: |
   cd mosaicml-examples/llm
-  python convert_pile_of_law.py --out_root ./pile-of-law --splits train
+  python convert_pile_of_law.py --out_root ./pile-of-law
   composer main.py yamls/mosaic_gpt/1b.yaml \
-    train_loader.dataset.split=train \
     progress_bar=false \
     run_name=$COMPOSER_RUN_NAME
